@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrumen Supervisi Penjaga Sekolah - SMP NEGERI 2 KALIPARE</title>
+    
+    <style> 
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 21cm; 
+            min-height: 29.7cm; 
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- Kop Sekolah --- */
+        .header-kop {
+            text-align: center;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 3px solid black;
+            position: relative;
+        }
+
+        .header-kop h1, .header-kop p {
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .kop-title { font-size: 14pt; font-weight: bold; }
+        .kop-subtitle { font-size: 18pt; font-weight: bold; } 
+        .kop-address { font-size: 11pt; }
+        
+        .logo-placeholder-label {
+            position: absolute;
+            left: 20px;
+            top: 5px;
+            width: 80px;
+            height: 80px;
+            border: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9pt;
+            text-align: center;
+            font-style: italic;
+            cursor: pointer; 
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        #schoolLogo {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        /* --- Header dan Input Manual Semester --- */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title-doc, .school-name, .semester {
+            margin: 2px 0;
+            font-size: 14pt;
+        }
+        .title-doc { text-decoration: underline; font-weight: bold; }
+
+        .semester input[type="text"] {
+            border: none;
+            border-bottom: 1px dashed #333;
+            width: 150px;
+            text-align: center;
+            font-size: 14pt;
+            font-family: 'Times New Roman', Times, serif;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* --- Form Input Identitas --- */
+        .identity-form {
+            font-size: 12pt;
+            margin-bottom: 20px;
+        }
+
+        .identity-form input, #supervisorInput, #rekomendasiInput {
+            border: none;
+            border-bottom: 1px solid #333;
+            padding: 2px;
+            width: 200px;
+        }
+
+        /* --- Tabel Supervisi --- */
+        #supervisionTable {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11pt;
+            margin-bottom: 20px;
+        }
+
+        #supervisionTable th, #supervisionTable td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        #supervisionTable th { text-align: center; background-color: #f9f9f9; }
+        .score-header { text-align: center !important; }
+        .score-col { width: 20px; text-align: center !important; padding: 2px; }
+        .radio-cell { text-align: center; width: 20px; padding: 2px; }
+        .radio-cell input[type="radio"] { cursor: pointer; }
+        .section-header td { font-weight: bold; background-color: #eee; }
+        .note-input, .suggestion-input {
+            width: 100%;
+            box-sizing: border-box;
+            border: none;
+            padding: 0;
+            margin: 0;
+            font-size: 11pt;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .result-cell { text-align: center !important; font-weight: bold; background-color: #e0f7fa; }
+        .no-border { border: none !important; }
+
+        /* --- Hasil Kinerja Otomatis --- */
+        .automatic-result h4 { margin-top: 15px; margin-bottom: 5px; text-decoration: underline; font-size: 12pt; }
+        .automatic-result ul { margin: 5px 0 10px 20px; padding: 0; font-size: 11pt; }
+        .automatic-result p { margin: 5px 0; font-size: 11pt; }
+        #kesimpulanKinerjaOutput { font-weight: bold; font-style: italic; }
+
+        /* --- Tanda Tangan --- */
+        .rubric-and-notes {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 11pt;
+        }
+
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+            font-size: 12pt;
+        }
+
+        .signature-block { width: 30%; }
+        .name-signature { margin-top: 50px; margin-bottom: 5px; text-decoration: underline; font-weight: bold; }
+
+        /* Tombol dan Instruksi Cetak */
+        #downloadWordBtn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        
+        .print-instruction {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 10pt;
+            color: #666;
+        }
+
+        /* Gaya khusus untuk tampilan cetak (Legal 21 x 33 cm) */
+        @media print {
+            body { background-color: white; }
+            .container { box-shadow: none; margin: 0; padding: 0; width: 100%; }
+            .print-instruction, #downloadWordBtn { display: none; }
+            .note-input, .suggestion-input { border-bottom: none; }
+            .logo-placeholder-label { border: none !important; }
+            #logoText { display: none; } 
+            @page {
+                size: 21cm 33cm; 
+                margin: 1cm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-kop">
+            <input type="file" id="logoUpload" accept="image/*" style="display: none;">
+            <label for="logoUpload" class="logo-placeholder-label" title="Klik untuk Unggah Logo">
+                <img id="schoolLogo" src="" alt="Logo Kab. Malang">
+                <span id="logoText">KLIK UNTUK UNGGAH LOGO KABUPATEN MALANG</span>
+            </label>
+            <p class="kop-title">PEMERINTAH KABUPATEN MALANG</p>
+            <p class="kop-title">DINAS PENDIDIKAN</p>
+            <p class="kop-subtitle">SMP NEGERI 2 KALIPARE</p>
+            <p class="kop-address">Jl Raya Banduarjo Kec Kalipare Kab. Malang.</p> 
+        </div>
+        
+        <header>
+            <h2 class="title-doc">INSTRUMEN SUPERVISI PENJAGA SEKOLAH</h2>
+            <p class="semester">SEMESTER 1 TAHUN AJARAN <input type="text" id="semesterInput" value="2024/2025"></p>
+        </header>
+
+        <section class="identity-form">
+            <p>1. Nama Penjaga Sekolah : <input type="text" id="namaPenjaga" placeholder="Isi Nama Penjaga Sekolah"></p>
+            <p>2. NIP : <input type="text" id="nipPenjaga" placeholder="Isi NIP"></p>
+            <p>3. Supervisor (Pengawas) : <input type="text" id="supervisorInput" placeholder="Isi Nama Supervisor"></p>
+        </section>
+
+        <table id="supervisionTable">
+            <thead>
+                <tr>
+                    <th rowspan="2">NO</th>
+                    <th rowspan="2">ASPEK YANG DISUPERVISI</th>
+                    <th colspan="4" class="score-header">KRITERIA (Skor 1-4)</th>
+                    <th rowspan="2">CATATAN</th>
+                    <th rowspan="2">SARAN</th>
+                </tr>
+                <tr>
+                    <th class="score-col">1</th>
+                    <th class="score-col">2</th>
+                    <th class="score-col">3</th>
+                    <th class="score-col">4</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="section-header">
+                    <td>A</td>
+                    <td>PERANGKAT ADMINISTRASI</td>
+                    <td colspan="6"></td>
+                </tr>
+                <tr class="item-row" data-item="A1">
+                    <td>1.</td>
+                    <td>Buku daftar hadir</td>
+                    <td class="radio-cell"><input type="radio" name="A1" value="1"></td>
+                    <td class="radio-cell"><input type="radio" name="A1" value="2"></td>
+                    <td class="radio-cell"><input type="radio" name="A1" value="3"></td>
+                    <td class="radio-cell"><input type="radio" name="A1" value="4"></td>
+                    <td><input type="text" class="note-input"></td>
+                    <td><input type="text" class="suggestion-input"></td>
+                </tr>
+                <tr class="item-row" data-item="A2">
+                    <td>2.</td>
+                    <td>Buku jenis kegiatan</td>
+                    <td class="radio-cell"><input type="radio" name="A2" value="1"></td>
+                    <td class="radio-cell"><input type="radio" name="A2" value="2"></td>
+                    <td class="radio-cell"><input type="radio" name="A2" value="3"></td>
+                    <td class="radio-cell"><input type="radio" name="A2" value="4"></td>
+                    <td><input type="text" class="note-input"></td>
+                    <td><input type="text" class="suggestion-input"></td>
+                </tr>
+                <tr class="item-row" data-item="A3">
+                    <td>3.</td>
+                    <td>Buku laporan hasil kerja</td>
+                    <td class="radio-cell"><input type="radio" name="A3" value="1"></td>
+                    <td class="radio-cell"><input type="radio" name="A3" value="2"></td>
+                    <td class="radio-cell"><input type="radio" name="A3" value="3"></td>
+                    <td class="radio-cell"><input type="radio" name="A3" value="4"></td>
+                    <td><input type="text" class="note-input"></td>
+                    <td><input type="text" class="suggestion-input"></td>
+                </tr>
+                <tr class="item-row" data-item="A4">
+                    <td>4.</td>
+                    <td>Buku inventaris alat RT sekolah</td>
+                    <td class="radio-cell"><input type="radio" name="A4" value="1"></td>
+                    <td class="radio-cell"><input type="radio" name="A4" value="2"></td>
+                    <td class="radio-cell"><input type="radio" name="A4" value="3"></td>
+                    <td class="radio-cell"><input type="radio" name="A4" value="4"></td>
+                    <td><input type="text" class="note-input"></td>
+                    <td><input type="text" class="suggestion-input"></td>
+                </tr>
+
+                <tr class="section-header" id="PGTS-header">
+                    <td>B</td>
+                    <td>Kegiatan PGTS (Tugas Penjaga Sekolah, Kebersihan, dan Keamanan Malam)</td>
+                    <td colspan="6"></td>
+                </tr>
+                
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2">TOTAL SKOR PEROLEHAN (A+B)</td>
+                    <td colspan="4" id="totalScoreCell" class="result-cell">0</td>
+                    <td colspan="2" class="no-border"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">NILAI AKHIR (Persentase dari Skor Maksimum)</td>
+                    <td colspan="4" id="finalValueCell" class="result-cell">0.00</td>
+                    <td colspan="2" class="no-border"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">PREDIKAT PENILAIAN</td>
+                    <td colspan="4" id="predicateCell" class="result-cell"></td>
+                    <td colspan="2" class="no-border"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <section class="automatic-result">
+            <h4>KESIMPULAN KINERJA</h4>
+            <p>Berdasarkan hasil supervisi, kinerja Penjaga Sekolah berada pada predikat <span id="kesimpulanKinerjaOutput">...</span></p>
+
+            <h4>KEKUATAN</h4>
+            <ul id="kekuatanList">
+                <li>(Kekuatan akan terisi otomatis berdasarkan item yang mendapat skor 4)</li>
+            </ul>
+
+            <h4>KELEMAHAN</h4>
+            <ul id="kelemahanList">
+                <li>(Kelemahan akan terisi otomatis berdasarkan item yang mendapat skor 1 atau 2)</li>
+            </ul>
+
+            <h4>RENCANA TINDAK LANJUT (RTL)</h4>
+            <ul id="rtlList">
+                <li>(RTL akan terisi otomatis, fokus pada Kelemahan yang ditemukan)</li>
+            </ul>
+
+            <h4>REKOMENDASI TAMBAHAN (Diisi Manual)</h4>
+            <textarea id="rekomendasiInput" style="width: 100%; height: 50px; border: 1px solid #333; box-sizing: border-box;"></textarea>
+        </section>
+
+
+        <section class="rubric-and-notes">
+            <div class="score-definition">
+                <h4>Definisi Skor:</h4>
+                <ul>
+                    <li>**1** = tidak ada / sangat kurang</li>
+                    <li>**2** = ada cukup baik / perlu perbaikan</li>
+                    <li>**3** = ada baik</li>
+                    <li>**4** = ada sangat baik / sangat optimal</li>
+                </ul>
+            </div>
+            <div class="grading-rubric">
+                <h4>Rubrik Penilaian:</h4>
+                <ul>
+                    <li>Skor **86-100** : Sangat Baik</li>
+                    <li>Skor **70-85** : Baik</li>
+                    <li>Skor **55-69** : Cukup</li>
+                    <li>Skor **0-54** : Kurang</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="signatures">
+            <div class="signature-block">
+                <p>Kalipare, <span id="dateOutput">...</span>.2024</p>
+                <p>Supervisor / Pengawas,</p>
+                <br><br>
+                <p class="name-signature"><span id="supervisorSignatureOutput">...</span></p>
+                <p>NIP. <span class="kepsek-nip">...</span></p>
+            </div>
+            <div class="signature-block">
+                <p>Kepala Sekolah,</p>
+                <br><br>
+                <p class="name-signature">Elisabet Dwi Budiati, S.Pd.</p>
+                <p>NIP. <span class="kepsek-nip">...</span></p>
+            </div>
+            <div class="signature-block">
+                <p>Penjaga Sekolah,</p>
+                <br><br>
+                <p class="name-signature"><span id="nameSignatureOutput">...</span></p>
+                <p>NIP. <span id="nipSignatureOutput">...</span></p>
+            </div>
+        </section>
+        
+    </div>
+
+    <button id="downloadWordBtn">Unduh sebagai File Word (.doc)</button>
+    <p class="print-instruction">Isi formulir, lalu klik tombol Unduh di atas, atau tekan **Ctrl+P** (Windows) / **Cmd+P** (Mac) untuk mencetak versi PDF.</p>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ELEMENT REFERENCES
+            const pgtsHeader = document.getElementById('PGTS-header');
+            const totalScoreCell = document.getElementById('totalScoreCell');
+            const finalValueCell = document.getElementById('finalValueCell');
+            const predicateCell = document.getElementById('predicateCell');
+            const namaPenjagaInput = document.getElementById('namaPenjaga');
+            const nipPenjagaInput = document.getElementById('nipPenjaga');
+            const supervisorInput = document.getElementById('supervisorInput');
+            const nameSignatureOutput = document.getElementById('nameSignatureOutput');
+            const nipSignatureOutput = document.getElementById('nipSignatureOutput');
+            const supervisorSignatureOutput = document.getElementById('supervisorSignatureOutput');
+            const kesimpulanKinerjaOutput = document.getElementById('kesimpulanKinerjaOutput');
+            const kekuatanList = document.getElementById('kekuatanList');
+            const kelemahanList = document.getElementById('kelemahanList');
+            const rtlList = document.getElementById('rtlList');
+            const downloadWordBtn = document.getElementById('downloadWordBtn');
+            const logoUploadInput = document.getElementById('logoUpload');
+            const schoolLogoImg = document.getElementById('schoolLogo');
+            const logoTextSpan = document.getElementById('logoText');
+
+            // DATA
+            const adminActivities = {
+                A1: "Buku daftar hadir",
+                A2: "Buku jenis kegiatan",
+                A3: "Buku laporan hasil kerja",
+                A4: "Buku inventaris alat RT sekolah"
+            };
+            
+            // LIST BARU BERDASARKAN tugas penjaga sekolah.pdf (Gabungan tugas harian dan jaga malam)
+            const pgtsActivities = {
+                B1: "Datang dan pulang sesuai jadwal (Selalu datang lebih awal dan pulang paling akhir). (Tugas Harian)",
+                B2: "Melaksanakan patroli rutin di siang hari, menjaga keamanan dan ketertiban sekolah.",
+                B3: "Menjaga kebersihan seluruh area sekolah (Kepsek, TU, kelas, mushola, kamar mandi guru/siswa).",
+                B4: "Merawat taman-taman sekolah.",
+                B5: "Menjaga dan memelihara barang inventaris milik sekolah (Tugas Umum).",
+                B6: "Membantu kaur sarpras menyiapkan peralatan kegiatan dan membenahi peralatan rusak ringan.",
+                B7: "Menyediakan dan menyiapkan kebutuhan guru, pegawai, siswa, dan tamu sekolah (termasuk konsumsi).",
+                B8: "Menerima dan mengarahkan tamu sesuai dengan keperluan (Siang).",
+                B9: "Mengatur parkir kendaraan tamu, guru dan tenaga pendidik.",
+                B10: "Mencatat dan melaporkan segala kejadian (Siang) serta menyampaikan laporan sesuai tugasnya.",
+                B11: "Mengenal dan memanfaatkan peta wilayah sekolah untuk kepentingan keamanan.",
+                B12: "Membuat dokumen/catatan tentang keamanan sekolah dan menggunakan peralatan keamanan.",
+                // TUGAS JAGA MALAM (Night Watchman Duties)
+                B13: "Menjaga keamanan dan ketertiban sekolah pada malam hari.",
+                B14: "Melakukan patroli rutin, mendeteksi aktivitas mencurigakan, dan menjaga pintu jendela tetap terkunci pada malam hari.",
+                B15: "Menjaga dan memelihara barang-barang milik sekolah pada malam hari.",
+                B16: "Memberikan informasi jika ada yang datang pada malam hari.",
+                B17: "Mencatat dan melaporkan segala kejadian yang terjadi pada saat malam hari."
+            };
+
+            const allActivities = { ...adminActivities, ...pgtsActivities };
+            const totalItems = Object.keys(allActivities).length; // Total item: 4 (A) + 17 (B) = 21
+
+            // --- FUNGSI UTAMA ---
+
+            // Fungsi untuk Mengisi Bagian B (Kegiatan PGTS)
+            function generatePGTSRows() {
+                let htmlContent = '';
+                let index = 1;
+                for (const key in pgtsActivities) {
+                    const activity = pgtsActivities[key];
+                    const groupName = key;
+                    
+                    // Tambahkan sub-header di B13 untuk memisahkan tugas malam
+                    if (key === 'B13') {
+                        htmlContent += `
+                            <tr class="section-header">
+                                <td></td>
+                                <td>SUB BAGIAN: TUGAS KEAMANAN MALAM (JAGA MALAM)</td>
+                                <td colspan="6"></td>
+                            </tr>
+                        `;
+                    }
+
+                    htmlContent += `
+                        <tr class="item-row" data-item="${key}">
+                            <td>${index++}.</td>
+                            <td>${activity}</td>
+                            <td class="radio-cell"><input type="radio" name="${groupName}" value="1"></td>
+                            <td class="radio-cell"><input type="radio" name="${groupName}" value="2"></td>
+                            <td class="radio-cell"><input type="radio" name="${groupName}" value="3"></td>
+                            <td class="radio-cell"><input type="radio" name="${groupName}" value="4"></td>
+                            <td><input type="text" class="note-input"></td>
+                            <td><input type="text" class="suggestion-input"></td>
+                        </tr>
+                    `;
+                }
+                pgtsHeader.insertAdjacentHTML('afterend', htmlContent);
+            }
+
+            // Fungsi Perhitungan dan Hasil Otomatis
+            function calculateScore() {
+                const allRadioButtons = document.querySelectorAll('#supervisionTable input[type="radio"]:checked');
+                let totalScore = 0;
+                let finalValue = 0;
+                let predicate = '';
+                
+                let kekuatan = [];
+                let kelemahan = [];
+
+                // 1. Hitung Skor & Kumpulkan Kekuatan/Kelemahan
+                allRadioButtons.forEach(radio => {
+                    const score = parseInt(radio.value);
+                    totalScore += score;
+                    const itemName = radio.name; 
+                    const activityDescription = allActivities[itemName];
+
+                    if (score === 4) {
+                        kekuatan.push(activityDescription);
+                    } else if (score === 1 || score === 2) {
+                        kelemahan.push(activityDescription);
+                    }
+                });
+
+                // 2. Tentukan Nilai Akhir dan Predikat
+                const totalMaxScore = totalItems * 4;
+                finalValue = (totalScore / totalMaxScore) * 100;
+                
+                if (finalValue >= 86) {
+                    predicate = 'Sangat Baik'; 
+                } else if (finalValue >= 70) {
+                    predicate = 'Baik'; 
+                } else if (finalValue >= 55) {
+                    predicate = 'Cukup'; 
+                } else {
+                    predicate = 'Kurang'; 
+                }
+                
+                // 3. Update Tampilan Hasil
+                totalScoreCell.textContent = totalScore;
+                finalValueCell.textContent = finalValue.toFixed(2);
+                predicateCell.textContent = predicate;
+
+                // 4. Update Hasil Otomatis
+                kesimpulanKinerjaOutput.textContent = predicate;
+
+                // Update Kekuatan
+                kekuatanList.innerHTML = '';
+                if (kekuatan.length > 0) {
+                    kekuatan.forEach(item => {
+                        kekuatanList.innerHTML += `<li>${item}</li>`;
+                    });
+                } else {
+                    kekuatanList.innerHTML = '<li>Tidak ada kekuatan yang menonjol (semua item skor di bawah 4).</li>';
+                }
+
+                // Update Kelemahan dan RTL
+                kelemahanList.innerHTML = '';
+                rtlList.innerHTML = '';
+                if (kelemahan.length > 0) {
+                    kelemahan.forEach((item, index) => {
+                        kelemahanList.innerHTML += `<li>${item}</li>`;
+                        rtlList.innerHTML += `<li>Memberikan pembinaan kepada Penjaga Sekolah terkait ${item.toLowerCase()}.</li>`;
+                    });
+                } else {
+                    kelemahanList.innerHTML = '<li>Tidak ada kelemahan signifikan yang ditemukan.</li>';
+                    rtlList.innerHTML = '<li>Mempertahankan dan meningkatkan kinerja yang sudah sangat baik.</li>';
+                }
+            }
+
+            // Fungsi untuk sinkronisasi identitas
+            function syncIdentity() {
+                nameSignatureOutput.textContent = namaPenjagaInput.value || '...';
+                nipSignatureOutput.textContent = nipPenjagaInput.value || '...';
+                supervisorSignatureOutput.textContent = supervisorInput.value || '...';
+            }
+            
+            // --- FUNGSI LOGO UPLOAD ---
+            logoUploadInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        schoolLogoImg.src = e.target.result;
+                        schoolLogoImg.style.display = 'block';
+                        logoTextSpan.style.display = 'none'; 
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // --- FUNGSI UNDUH WORD ---
+            function downloadWord() {
+                const container = document.querySelector('.container').cloneNode(true);
+                
+                // 1. Mengganti elemen interaktif dengan teks statis
+
+                // Hapus elemen yang tidak perlu (tombol unduh, instruksi cetak)
+                const btn = document.getElementById('downloadWordBtn'); 
+                if (btn) btn.remove();
+                const instruction = document.querySelector('.print-instruction');
+                if (instruction) instruction.remove();
+                
+                // Ganti input radio dengan nilainya (X jika dipilih)
+                container.querySelectorAll('.radio-cell input[type="radio"]').forEach(input => {
+                    const selectedValue = input.checked ? 'X' : ''; 
+                    const cell = input.closest('.radio-cell');
+                    cell.textContent = selectedValue; 
+                });
+                
+                // Ganti input text (nama, nip, supervisor, semester) dan textarea (rekomendasi) dengan nilai yang diisi
+                container.querySelectorAll('input[type="text"], textarea').forEach(input => {
+                    const value = input.value || input.textContent;
+                    const parent = input.parentNode;
+                    
+                    const displayValue = document.createElement('span');
+                    displayValue.textContent = value;
+                    
+                    // Style untuk border bawah (agar terlihat seperti diisi)
+                    if (input.id !== 'semesterInput') {
+                         displayValue.style.borderBottom = '1px solid black';
+                    }
+                    displayValue.style.display = 'inline-block';
+                    
+                    if(input.id === 'rekomendasiInput') {
+                        // Untuk textarea, ganti dengan paragraf
+                        const p = document.createElement('p');
+                        p.textContent = value;
+                        input.replaceWith(p);
+                    } else if (input.parentNode.tagName === 'P') {
+                        // Untuk input biasa di dalam P
+                        input.replaceWith(displayValue);
+                    } else {
+                        // Untuk input di dalam cell tabel
+                        input.replaceWith(value);
+                    }
+                });
+
+                // Ganti input semester dengan teks statis di dalam P
+                const clonedSemesterInput = container.querySelector('#semesterInput');
+                if(clonedSemesterInput) {
+                    const semesterValue = clonedSemesterInput.value;
+                    const semesterP = clonedSemesterInput.closest('.semester');
+                    semesterP.innerHTML = `SEMESTER 1 TAHUN AJARAN <span style="font-weight: bold;">${semesterValue}</span>`;
+                }
+
+
+                // 2. Sinkronisasi Output Otomatis
+                container.querySelector('#kesimpulanKinerjaOutput').textContent = kesimpulanKinerjaOutput.textContent;
+                container.querySelector('#kekuatanList').innerHTML = kekuatanList.innerHTML;
+                container.querySelector('#kelemahanList').innerHTML = kelemahanList.innerHTML;
+                container.querySelector('#rtlList').innerHTML = rtlList.innerHTML;
+                
+                // Ganti output hitungan
+                container.querySelector('#totalScoreCell').textContent = totalScoreCell.textContent;
+                container.querySelector('#finalValueCell').textContent = finalValueCell.textContent;
+                container.querySelector('#predicateCell').textContent = predicateCell.textContent;
+                
+                // Hapus border input manual catatan
+                container.querySelectorAll('.note-input, .suggestion-input').forEach(span => {
+                    span.style.borderBottom = 'none';
+                });
+                
+                // 3. Handle Logo
+                const logoLabel = container.querySelector('.logo-placeholder-label');
+                const logoImg = container.querySelector('#schoolLogo');
+                
+                container.querySelector('#logoUpload').remove(); // Hapus input file
+
+                if (logoImg && logoImg.src && logoImg.style.display !== 'none') {
+                    // Jika logo diunggah, sisipkan gambar (Data URL)
+                    logoLabel.innerHTML = `<img src="${logoImg.src}" alt="Logo" width="80" height="80" style="width: 80px; height: 80px; object-fit: contain;">`;
+                    logoLabel.style.border = 'none'; 
+                } else {
+                    // Jika tidak diunggah, hapus area logo atau biarkan kosong
+                    logoLabel.style.display = 'none';
+                }
+                
+                // 4. Finalisasi Konten dan Unduh
+                const htmlContent = container.outerHTML;
+
+                // CSS Khusus Microsoft Word (MSO) untuk ukuran Legal (21x33cm)
+                const msoStyle = `
+                    <style>
+                        @page WordSection1 {
+                            size: 21cm 33cm; 
+                            margin: 2.5cm 2.5cm 2.5cm 2.5cm;
+                            mso-page-orientation: portrait;
+                            mso-paper-source: 0;
+                        }
+                        div.WordSection1 {
+                            page: WordSection1;
+                        }
+                        body {
+                            font-family: 'Times New Roman', Times, serif;
+                            font-size: 12pt;
+                        }
+                        table { 
+                            border-collapse: collapse; 
+                            width: 100%; 
+                            font-size: 11pt; 
+                        }
+                        th, td { 
+                            border: 1pt solid black; 
+                            padding: 5px; 
+                        }
+                        .no-border { border: none !important; }
+                        .result-cell { background-color: #e0f7fa; }
+                        .radio-cell {
+                            text-align: center;
+                            font-weight: bold;
+                        }
+                        .header-kop { border-bottom: 3pt double black !important; }
+                        .logo-placeholder-label { display: block; border: none !important; }
+                        .kop-subtitle { font-size: 18pt !important; } 
+                    </style>
+                `;
+
+                const content = `
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                    <head>
+                        <meta charset='utf-8'>
+                        <title>Supervisi Penjaga Sekolah</title>
+                        ${msoStyle}
+                    </head>
+                    <body>
+                        <div class='WordSection1'>
+                            ${htmlContent}
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                const filename = 'Supervisi_PGTS_SMPN2_KALIPARE.doc';
+                const blob = new Blob([content], { type: 'application/msword' });
+                
+                const url = URL.createObjectURL(blob);
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = filename;
+                
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(url);
+            }
+
+            // --- INISIALISASI LISTENERS ---
+            generatePGTSRows();
+            
+            document.querySelectorAll('#supervisionTable input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', calculateScore);
+            });
+
+            namaPenjagaInput.addEventListener('input', syncIdentity);
+            nipPenjagaInput.addEventListener('input', syncIdentity);
+            supervisorInput.addEventListener('input', syncIdentity);
+
+            downloadWordBtn.addEventListener('click', downloadWord);
+
+            // Set tanggal saat ini
+            const today = new Date();
+            const day = today.getDate();
+            const month = today.toLocaleString('id-ID', { month: 'long' });
+            document.getElementById('dateOutput').textContent = `${day} ${month}`;
+
+            // Jalankan perhitungan awal (skor 0)
+            calculateScore();
+            syncIdentity();
+        });
+    </script>
+</body>
+</html>
