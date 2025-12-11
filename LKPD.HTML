@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LKPD: Budidaya Tanaman Tebu Interaktif</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
         /* --- 1. GENERAL & BASE STYLING (UNTUK TAMPILAN RAPI) --- */
         body {
@@ -167,6 +168,9 @@
         .summary-row td { background-color: #F0E68C; font-weight: 700 !important; }
         .keuntungan-row td { background-color: #8FBC8F; color: #333; font-size: 1em; }
         .summary-total { text-align: right !important; padding-right: 15px !important; }
+        
+        /* Baris Istirahat pada Jadwal */
+        .istirahat-row td { background-color: #eee; font-style: italic; }
 
         /* --- Button Styling --- */
         .action-container { 
@@ -187,10 +191,13 @@
         }
         .btn-add { background-color: #4CAF50; color: white; }
         .btn-remove { background-color: #f44336; color: white; padding: 4px 6px; font-size: 0.75em; margin-left: 5px; }
-        .btn-download { background-color: #2196F3; color: white; }
+        /* WARNA BIRU UNTUK PRINT/DOWNLOAD PDF */
+        .btn-download { background-color: #4682B4; color: white; } 
         .btn-preview { background-color: #FF9800; color: white; }
         .btn-share { background-color: #25D366; color: white; }
-        .btn-show-list { background-color: #4682B4; color: white; padding: 6px 10px; font-size: 0.85em; }
+        /* WARNA HIJAU UNTUK LIST/MODAL */
+        .btn-show-list { background-color: #8FBC8F; color: white; padding: 6px 10px; font-size: 0.85em; } 
+        .btn-project-schedule { background-color: #4CAF50; color: white; }
 
         /* --- Footer --- */
         footer { 
@@ -215,6 +222,7 @@
 
             .action-container { justify-content: center; }
             .btn { width: 48%; margin-bottom: 5px; } 
+            .btn-project-schedule { width: 100%; margin-bottom: 5px; }
             
             .form-group-inline { flex-direction: column; align-items: flex-start; gap: 10px; }
             .form-group-inline label { width: 100%; }
@@ -251,7 +259,7 @@
                 border-radius: 0;
             }
             
-            .action-container, .btn, .btn-remove, .btn-add, header, .btn-show-list {
+            .action-container, .btn, .btn-remove, .btn-add, header, .btn-show-list, .btn-project-schedule {
                 display: none !important;
             }
             
@@ -260,6 +268,12 @@
                 background-color: transparent !important;
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
+                font-weight: bold; 
+                padding: 0 !important;
+            }
+
+            table input[type="text"], table input[type="number"], table textarea, select {
+                border: none !important;
             }
             
             .container::before {
@@ -267,12 +281,18 @@
                 width: 70%;
                 height: 70%;
             }
+            
+            .summary-row td, .keuntungan-row td, table th, .istirahat-row td {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact; 
+            }
         }
         
         /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); }
-        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 30px; border: 1px solid #888; width: 90%; max-width: 700px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 30px; border: 1px solid #888; width: 90%; max-width: 900px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+        
     </style>
 </head>
 <body>
@@ -288,9 +308,10 @@
 
     <div class="container" id="lkpd-content">
         <div class="action-container">
+            <button class="btn btn-project-schedule" onclick="showProjectScheduleModal()">📅 Lihat Jadwal Proyek</button>
             <button class="btn btn-preview" onclick="showPreview()">👁️ Pratinjau</button>
-            <button class="btn btn-share" onclick="shareToWhatsApp()">📲 Bagikan ke WhatsApp</button>
-            <button class="btn btn-download" onclick="downloadWord()">💾 Unduh sebagai Ms. Word</button>
+            <button class="btn btn-share" onclick="shareToWhatsApp()">📲 Instruksi WhatsApp</button>
+            <button class="btn btn-download" onclick="printPDF()">🖨️ Cetak / Simpan ke PDF</button>
         </div>
 
         <section id="identitas">
@@ -308,6 +329,11 @@
                     <option value="9B">9B</option>
                 </select>
                 
+                <label for="group-name">Nama Kelompok:</label>
+                <input type="text" id="group-name" name="group-name" placeholder="Contoh: Kelompok Tebu Manis" style="flex-grow: 1;">
+            </div>
+            
+            <div class="form-group-inline" style="margin-top: 10px;">
                 <label for="guru-pendamping">Guru Pendamping:</label>
                 <div class="guru-pendamping-group">
                     <input type="text" id="guru-pendamping" name="guru-pendamping" placeholder="Nama Guru Pendamping" style="flex-grow: 1;">
@@ -360,10 +386,10 @@
 
         <section id="wawancara">
             <h2>B. Tahap 1: Wawancara dan Pengumpulan Data</h2>
-            <p class="tujuan">Tujuan: Siswa mampu menyusun pertanyaan yang efektif dan mengumpulkan data primer tentang budidaya tebu serta aspek sosial-ekonominya[cite: 6].</p>
+            <p class="tujuan">Tujuan: Siswa mampu menyusun pertanyaan yang efektif dan mengumpulkan data primer tentang budidaya tebu serta aspek sosial-ekonominya.</p>
             
             <h3>Kegiatan 1.1: Persiapan Wawancara (Bahasa Indonesia)</h3>
-            <p>Tentukan satu (1) narasumber petani tebu yang akan diwawancarai di sekitar Kalipare[cite: 8]. Susunlah minimal 10 pertanyaan yang terstruktur, mencakup 3 aspek utama (teknik tanam, biaya, dan hasil)[cite: 9].</p>
+            <p>Tentukan satu (1) narasumber petani tebu yang akan diwawancarai di sekitar Kalipare. Susunlah minimal 10 pertanyaan yang terstruktur, mencakup 3 aspek utama (teknik tanam, biaya, dan hasil).</p>
             <div class="table-responsive">
                 <table id="tabel-pertanyaan">
                     <thead>
@@ -387,7 +413,7 @@
                 <label>Nama Narasumber:</label><input type="text">
                 <label>Lokasi Wawancara:</label><input type="text">
             </div>
-            <p>Catatlah rangkuman jawaban narasumber pada kolom di bawah ini (gunakan bahasa yang santun)[cite: 15]:</p>
+            <p>Catatlah rangkuman jawaban narasumber pada kolom di bawah ini (gunakan bahasa yang santun):</p>
             <textarea class="full-width-textarea" rows="10" placeholder="Rangkuman Jawaban Narasumber"></textarea>
         </section>
 
@@ -395,10 +421,10 @@
 
         <section id="analisis">
             <h2>C. Tahap 2: Analisis Teknik Budidaya dan Ekonomi</h2>
-            <p class="tujuan">Tujuan: Siswa mampu menganalisis teknik budidaya yang digunakan serta menghitung aspek ekonomi dan efisiensi pertanian tebu[cite: 18].</p>
+            <p class="tujuan">Tujuan: Siswa mampu menganalisis teknik budidaya yang digunakan serta menghitung aspek ekonomi dan efisiensi pertanian tebu.</p>
             
             <h3>Kegiatan 2.1: Analisis Teknik Budidaya (IPA)</h3>
-            <p>Jawablah pertanyaan di bawah ini berdasarkan data wawancara (dan riset tambahan)[cite: 20]:</p>
+            <p>Jawablah pertanyaan di bawah ini berdasarkan data wawancara (dan riset tambahan):</p>
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -415,7 +441,7 @@
             </div>
 
             <h3>Kegiatan 2.2: Analisis Biaya dan Hasil (Matematika)</h3>
-            <p>Hitunglah asumsi dasar biaya produksi per **1 Hektar** lahan tebu (gunakan perkiraan data dari narasumber)[cite: 23]:</p>
+            <p>Hitunglah asumsi dasar biaya produksi per **1 Hektar** lahan tebu (gunakan perkiraan data dari narasumber):</p>
             <div class="table-responsive">
                 <table id="tabel-biaya">
                     <thead>
@@ -439,10 +465,10 @@
 
         <section id="presentasi">
             <h2>D. Tahap 3: Presentasi Hasil Diskusi</h2>
-            <p class="tujuan">Tujuan: Siswa mampu menyajikan temuan wawancara dan hasil analisis secara informatif dan persuasif[cite: 26].</p>
+            <p class="tujuan">Tujuan: Siswa mampu menyajikan temuan wawancara dan hasil analisis secara informatif dan persuasif.</p>
             
             <h3>Kegiatan 3.1: Pembuatan Media (TIK)</h3>
-            <p>Buatlah media presentasi digital... minimal **8 slide** [cite: 28] dengan struktur berikut: [cite: 29, 30, 31, 32, 33, 34, 35, 36]</p>
+            <p>Buatlah media presentasi digital... minimal **8 slide** dengan struktur berikut:</p>
             <ol>
                 <li>Slide 1: Judul Proyek, Identitas Kelompok.</li>
                 <li>Slide 2: Profil Narasumber.</li>
@@ -455,9 +481,18 @@
             </ol>
             
             <h3>Kegiatan 3.2: Pelaksanaan Presentasi (Bahasa Indonesia)</h3>
-            <p>Berikan kesimpulan yang kuat mengenai potensi dan tantangan budidaya tebu di Kalipare[cite: 40].</p>
+            <p>Berikan kesimpulan yang kuat mengenai potensi dan tantangan budidaya tebu di Kalipare.</p>
             <textarea class="full-width-textarea" rows="5" placeholder="Tuliskan Kesimpulan Kuat Kelompok..."></textarea>
         </section>
+        
+        <hr>
+        <section id="penutup" style="text-align: right; margin-top: 30px;">
+             <p>Mengetahui,</p>
+             <p style="margin-bottom: 50px;">Kepala SMP Negeri 2 Kalipare</p>
+             <p><strong>ELISABET DWI BUDIATI, S.Pd</strong></p>
+             <p>NIP. 197507312002122005</p>
+        </section>
+
 
     </div>
 
@@ -480,10 +515,19 @@
             <div id="guru-list-body"></div>
         </div>
     </div>
+    
+    <div id="schedule-modal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <span class="close-button" onclick="closeScheduleModal()">&times;</span>
+            <h2>Jadwal Pelaksanaan LKPD Proyek Budidaya Tebu</h2>
+            <div id="schedule-body">
+                </div>
+        </div>
+    </div>
 
 
     <script>
-        // Data Guru Pendamping diambil dari file yang diunggah.
+        // Data Guru Pendamping
         const guruPendampingData = [
             { no: 1, nama: "Sulistiono, Imarotul Faudah", kelas: "7A" },
             { no: 2, nama: "Bambang Rudi, Sutono", kelas: "7B" },
@@ -493,12 +537,64 @@
             { no: 6, nama: "Dwi Susanti, N. Agustina", kelas: "9B" }
         ];
 
+        // HTML Jadwal Proyek (Dibuat konstan agar mudah dipanggil ke modal)
+        const projectScheduleHTML = `
+            <p style="font-style: italic;">Jadwal ini berlaku untuk Tahun Pelajaran 2025-2026. Durasi 1 JP = 40 Menit.</p>
+            <div class="table-responsive">
+                <table style="font-size: 0.8em; min-width: 800px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">Hari</th>
+                            <th style="width: 10%;">Waktu</th>
+                            <th style="width: 5%;">JP</th>
+                            <th style="width: 45%;">Nama Kegiatan (Tahapan LKPD)</th>
+                            <th style="width: 17%;">Fokus Dimensi Kelulusan</th>
+                            <th style="width: 15%;">Guru Pendamping</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td rowspan="6" style="vertical-align: middle; text-align: center; font-weight: 700;">SENIN</td><td>07:40 – 08:00</td><td>0.5 JP</td><td>PJ Uni Umum, Proyek Kokur (Penggambaran ruang kelas, Penyusunan pengumuman)</td><td>Keimanan, Kewargaan</td><td>Guru Piket/PAI</td></tr>
+                        <tr><td>08:00 – 10:30</td><td>3.5 JP</td><td>Merakit Kelas Mandiri (Persiapan Wawancara) (Membaca telapak, Refleksi, Menentukan tujuan wawancara)</td><td>Kolaborasi, Penalaran Kritis</td><td>Guru IPS, Guru Bahasa Indonesia</td></tr>
+                        <tr><td>10:30 – 12:00</td><td>2 JP</td><td>Etika Wawancara & Riset Teknik Budidaya (Siklus Tanam dan Kebutuhan unsur hara tanah)</td><td>Komunikasi, IPA</td><td>Guru IPA</td></tr>
+                        <tr class="istirahat-row"><td>12:00 – 12:40</td><td>Istirahat</td><td>Istirahat & Tanggung Jawab Kebersihan Pribadi</td><td>Kemandirian</td><td></td></tr>
+                        <tr><td>12:40 – 14:15</td><td>2.5 JP</td><td>Presentasi Hasil Riset Awal Kelompok</td><td>Komunikasi, Penalaran Kritis</td><td>Guru Bahasa Indonesia</td></tr>
+                        <tr><td>14:15 – 15:00</td><td>1 JP</td><td>Pemberian Tugas Rumah & Refleksi (Informasi tugas rumah Infografis + Video)</td><td>TIK, Refleksi</td><td>Guru TIK</td></tr>
+
+                        <tr><td rowspan="4" style="vertical-align: middle; text-align: center; font-weight: 700;">SELASA</td><td>07:40 – 07:50</td><td>1 JP</td><td>Doa Pagi Bersama</td><td>Keimanan & Ketakwaan</td><td>Guru Piket/PAI</td></tr>
+                        <tr><td>07:50 – 12:00</td><td>6 JP</td><td>Pelaksanaan Wawancara Lapangan (Kunjungan ke Petani Tebu)</td><td>Komunikasi, Kolaborasi, Kewargaan</td><td>Guru IPS, Guru PKN/BK</td></tr>
+                        <tr class="istirahat-row"><td>12:00 – 12:40</td><td>Istirahat</td><td>Istirahat & Tanggung Jawab Kebersihan Pribadi</td><td>Kemandirian</td><td></td></tr>
+                        <tr><td>12:40 – 15:15</td><td>3 JP</td><td>Transkrip & Klasifikasi Data Wawancara</td><td>Penalaran Kritis, Kemandirian</td><td>Guru Bahasa Indonesia</td></tr>
+
+                        <tr><td rowspan="6" style="vertical-align: middle; text-align: center; font-weight: 700;">RABU</td><td>07:40 – 08:50</td><td>1.75 JP</td><td>Merangkum Hasil Wawancara (Pengelompokan data teknis dan ekonomi)</td><td>Penalaran Kritis, Bahasa Indonesia</td><td>Guru Bahasa Indonesia</td></tr>
+                        <tr><td>08:50 – 10:30</td><td>2.5 JP</td><td>Presentasi Hasil Wawancara Awal</td><td>Komunikasi</td><td>Guru Bahasa Indonesia</td></tr>
+                        <tr><td>10:30 – 12:00</td><td>2 JP</td><td>Membuat Media Presentasi (PPT/Canva)</td><td>Kreativitas, TIK</td><td>Guru TIK</td></tr>
+                        <tr class="istirahat-row"><td>12:00 – 12:40</td><td>Istirahat</td><td>Istirahat & Tanggung Jawab Kebersihan Pribadi</td><td>Kemandirian</td><td></td></tr>
+                        <tr><td>12:40 – 14:15</td><td>2.5 JP</td><td>Melanjutkan dan Finalisasi Media Presentasi</td><td>Kemandirian, TIK</td><td>Guru TIK</td></tr>
+                        <tr><td>14:15 – 15:15</td><td>1 JP</td><td>Refleksi Akhir</td><td>Refleksi</td><td>Guru BK</td></tr>
+
+                        <tr><td rowspan="5" style="vertical-align: middle; text-align: center; font-weight: 700;">KAMIS</td><td>07:40 – 07:50</td><td>1 JP</td><td>Doa Pagi Bersama</td><td>Keimanan & Ketakwaan</td><td>Guru Piket/PAI</td></tr>
+                        <tr><td>07:50 – 10:15</td><td>4 JP</td><td>Analisis Metode Tanam (Internet & Lapangan)</td><td>Penalaran Kritis, IPA</td><td>Guru IPA</td></tr>
+                        <tr><td>10:15 – 12:00</td><td>2 JP</td><td>Analisis Keuntungan dan Kelemahan Budidaya (Analisis Biaya Pokok Produksi)</td><td>Penalaran Kritis, Matematika</td><td>Guru Matematika</td></tr>
+                        <tr class="istirahat-row"><td>12:00 – 12:40</td><td>Istirahat</td><td>Istirahat & Tanggung Jawab Kebersihan Pribadi</td><td>Kemandirian</td><td></td></tr>
+                        <tr><td>12:40 – 15:15</td><td>3 JP</td><td>Edukasi Gizi dan Sanitasi</td><td>Kesehatan</td><td>Guru IPA/Biologi</td></tr>
+
+                        <tr><td rowspan="5" style="vertical-align: middle; text-align: center; font-weight: 700;">JUMAT</td><td>07:40 – 07:50</td><td>1 JP</td><td>Doa Pagi Bersama</td><td>Keimanan & Ketakwaan</td><td>Guru Piket/PAI</td></tr>
+                        <tr><td>07:50 – 08:20</td><td>1 JP</td><td>Senam Massal & Olahraga Bersama</td><td>Kesehatan, Kolaborasi</td><td>Guru PJOK</td></tr>
+                        <tr><td>08:20 – 10:30</td><td>3 JP</td><td>1. Penyusunan Laporan Wawancara Tebu (Fokus: Dampak Ekonomi Pertanian)</td><td>Komunikasi, Penalaran Kritis, IPS</td><td>Guru IPS, Guru Bahasa Indonesia</td></tr>
+                        <tr><td>10:30 – 12:30</td><td>3 JP</td><td>2. Finalisasi Laporan - Project (Jilid)</td><td>Kemandirian, Kreativitas, TIK</td><td>Guru TIK</td></tr>
+                        <tr><td colspan="5" style="text-align: center; font-weight: 700; background-color: #DDA0DD; color: white;">12:30 - SELESAI</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+
         function showGuruPendampingModal() {
             const modal = document.getElementById('guru-modal');
             const body = document.getElementById('guru-list-body');
             
             let htmlContent = `
-                <p style="font-style: italic;">Data ini berdasarkan daftar kegiatan kokurikuler SMP Negeri 2 Kalipare, Semester Ganjil TP 2025-2026[cite: 44].</p>
+                <p style="font-style: italic;">Data ini berdasarkan daftar kegiatan kokurikuler SMP Negeri 2 Kalipare, Semester Ganjil TP 2025-2026.</p>
                 <div class="table-responsive">
                     <table style="min-width: 400px; font-size: 0.9em;">
                         <thead>
@@ -534,6 +630,19 @@
         function closeGuruModal() {
             document.getElementById('guru-modal').style.display = "none";
         }
+        
+        // --- FUNGSI MODAL JADWAL PROJECT BARU ---
+        function showProjectScheduleModal() {
+            const modal = document.getElementById('schedule-modal');
+            const body = document.getElementById('schedule-body');
+            body.innerHTML = projectScheduleHTML; // Masukkan HTML jadwal konstan
+            modal.style.display = "block";
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('schedule-modal').style.display = "none";
+        }
+
 
         document.addEventListener('DOMContentLoaded', function() {
             const tableBiaya = document.getElementById('tabel-biaya');
@@ -547,7 +656,7 @@
             
             function formatRupiah(number) {
                 if (isNaN(number)) return '0';
-                return number.toLocaleString('id-ID');
+                return number.toLocaleString('id-ID'); 
             }
 
             function calculateRowTotal(row, costPerUnit) {
@@ -668,39 +777,91 @@
             }
         }
 
-        // --- FUNGSI PRATINJAU (PREVIEW) ---
+        // --- FUNGSI PRINT/SAVE TO PDF ---
+        function printPDF() {
+            window.print();
+        }
+        
+        // --- FUNGSI INSTRUKSI WHATSAPP ---
+        function shareToWhatsApp() {
+            const className = document.getElementById('group-class').value;
+            const groupName = document.getElementById('group-name').value;
+            const identifier = groupName || className || 'kelompok Anda';
+
+            const message = `*INSTRUKSI PENGIRIMAN FILE LKPD*\n\n` +
+                            `Halo, saya perwakilan dari ${identifier}.\n\n` +
+                            `1. Tekan tombol *🖨️ Cetak / Simpan ke PDF*.\n` +
+                            `2. Pada dialog yang muncul, ubah *Tujuan* menjadi *Simpan sebagai PDF* (atau *Save as PDF*).\n` +
+                            `3. Simpan file tersebut ke perangkat Anda. \n` +
+                            `4. Bagikan file PDF tersebut secara manual ke WhatsApp.\n\n` +
+                            `Terima kasih!`;
+            
+            const encodedMessage = encodeURIComponent(message);
+            
+            alert('PERHATIAN: Anda akan diarahkan ke dialog Cetak browser. Pilih "Simpan sebagai PDF" di sana untuk menyimpan file. Setelah ini, Anda akan diarahkan ke WhatsApp untuk mengirim pesan INSTRUKSI.');
+            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        }
+
+        // --- FUNGSI PRATINJAU (PREVIEW) & MODAL ---
+        
         function getCleanedLKPDContent() {
             const contentElement = document.getElementById('lkpd-content').cloneNode(true);
             
+            // Hapus tombol aksi dari pratinjau
             contentElement.querySelector('.action-container').remove();
-            contentElement.querySelectorAll('.btn-remove, .btn-add, .btn-show-list').forEach(btn => btn.remove());
+            contentElement.querySelectorAll('.btn-remove, .btn-add, .btn-show-list, .btn-project-schedule').forEach(btn => btn.remove());
             
+            // Hapus kolom 'Aksi' dari tabel
             contentElement.querySelectorAll('#tabel-anggota th:last-child, #tabel-pertanyaan th:last-child, #tabel-kolaborasi th:last-child').forEach(th => {
                 if (th.textContent.trim() === 'Aksi') {
                     th.remove();
                 }
             });
+            contentElement.querySelectorAll('#tabel-anggota td:last-child, #tabel-pertanyaan td:last-child, #tabel-kolaborasi td:last-child').forEach(td => {
+                 if(td.querySelector('.btn-remove')) {
+                     td.remove();
+                 }
+            });
+
 
             const classSelect = contentElement.querySelector('#group-class');
+            const groupInput = contentElement.querySelector('#group-name');
             const guruInput = contentElement.querySelector('#guru-pendamping');
-            const formGroupIdentitas = classSelect ? classSelect.closest('.form-group-inline') : null;
             
-            if (formGroupIdentitas) {
+            const formGroups = contentElement.querySelectorAll('.form-group-inline');
+
+            if (formGroups.length >= 2) {
                 const classValue = classSelect.options[classSelect.selectedIndex].text || '____________________ (Belum dipilih)';
+                const groupNameValue = groupInput.value.trim() || '____________________ (Belum diisi)';
                 const guruValue = guruInput.value.trim() || '____________________ (Belum diisi)';
 
-                const displayHtml = `
-                    <p style="font-weight: 600; margin-bottom: 10px; border: 1px dashed #ccc; padding: 10px; background: #f9f9f9;">
+                // Gabungkan informasi Kelas dan Nama Kelompok
+                const displayHtml1 = `
+                    <p style="font-weight: 600; margin-bottom: 5px; border: 1px dashed #ccc; padding: 10px 15px; background: #f9f9f9;">
                         <span>Kelas: </span><b style="color: #4682B4;">${classValue}</b> 
-                        <span style="margin-left: 30px;">Guru Pendamping: </span><b style="color: #4682B4;">${guruValue}</b>
+                        <span style="margin-left: 30px;">Nama Kelompok: </span><b style="color: #4682B4;">${groupNameValue}</b>
                     </p>
                 `;
                 
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = displayHtml;
-                formGroupIdentitas.parentNode.replaceChild(tempDiv.firstChild, formGroupIdentitas);
+                const tempDiv1 = document.createElement('div');
+                tempDiv1.innerHTML = displayHtml1;
+                
+                // Ganti form group pertama (Kelas & Nama Kelompok)
+                formGroups[0].parentNode.replaceChild(tempDiv1.firstChild, formGroups[0]);
+
+                // Ganti form group kedua (Guru Pendamping)
+                const displayHtml2 = `
+                    <p style="font-weight: 600; margin-top: 5px;">
+                        <span>Guru Pendamping: </span><b style="color: #4682B4;">${guruValue}</b>
+                    </p>
+                `;
+                const tempDiv2 = document.createElement('div');
+                tempDiv2.innerHTML = displayHtml2;
+                formGroups[1].parentNode.replaceChild(tempDiv2.firstChild, formGroups[1]);
             }
 
+
+            // Ganti semua input/textarea dengan nilainya
             contentElement.querySelectorAll('input, textarea').forEach(el => {
                 const value = el.value.trim() || '____________________ (Belum diisi)';
                 const p = document.createElement(el.tagName === 'TEXTAREA' ? 'div' : 'span');
@@ -709,9 +870,8 @@
                 p.style.display = 'block';
                 p.style.whiteSpace = 'pre-wrap';
                 
-                if (!el.closest('#tabel-biaya')) {
-                    el.parentNode.replaceChild(p, el);
-                } else if (el.closest('td').className !== 'summary-total' && el.type !== 'number' && el.type !== 'date') {
+                // Hanya ganti input yang bukan input perhitungan biaya
+                if (!el.closest('#tabel-biaya') || el.closest('tr').className === '') { 
                     el.parentNode.replaceChild(p, el);
                 } else if (el.type === 'number' || el.type === 'date') {
                     const span = document.createElement('span');
@@ -738,127 +898,18 @@
         window.onclick = function(event) {
             const previewModal = document.getElementById('preview-modal');
             const guruModal = document.getElementById('guru-modal');
+            const scheduleModal = document.getElementById('schedule-modal');
+            
             if (event.target == previewModal) {
                 previewModal.style.display = "none";
             }
             if (event.target == guruModal) {
                 guruModal.style.display = "none";
             }
-        }
-        
-        // --- FUNGSI BAGIKAN KE WHATSAPP ---
-        function shareToWhatsApp() {
-            const kelas = document.getElementById('group-class').value || 'Tidak Diketahui';
-            const guruPendamping = document.getElementById('guru-pendamping').value || 'Tidak Ada';
-            const anggota1 = document.querySelector('#tabel-anggota tbody tr:first-child input[type="text"]').value || 'Ketua Kelompok Belum Diisi';
-            const keuntungan = document.getElementById('keuntungan-bersih').textContent;
-            const kesimpulanTextarea = document.querySelector('#presentasi textarea').value;
-            const kesimpulan = kesimpulanTextarea.substring(0, 150) + (kesimpulanTextarea.length > 150 ? '...' : '');
-
-            const message = `*HASIL SEMENTARA LKPD BUDIDAYA TEBU*\n\n` +
-                            `Kelas: ${kelas}\n` +
-                            `Guru Pendamping: ${guruPendamping}\n` +
-                            `Kelompok Diketuai oleh: ${anggota1}\n` +
-                            `\n*RINGKASAN ANALISIS EKONOMI*\n` +
-                            `Keuntungan Bersih (B-A): Rp ${keuntungan}\n` +
-                            `\n*KESIMPULAN AWAL*\n` +
-                            `${kesimpulan}\n\n` +
-                            `Lihat/Edit selengkapnya di file LKPD HTML Anda.`;
-            
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-        }
-
-        // --- FUNGSI DOWNLOAD KE MS. WORD ---
-        function downloadWord() {
-            const content = document.getElementById('lkpd-content').innerHTML;
-
-            let cleanContent = content;
-            cleanContent = cleanContent.replace(/<div class="action-container">[\s\S]*?<\/div>/g, '');
-            cleanContent = cleanContent.replace(/<button class="btn-remove"[\s\S]*?<\/button>/g, '');
-            cleanContent = cleanContent.replace(/<button class="btn btn-add"[\s\S]*?<\/button>/g, '');
-            cleanContent = cleanContent.replace(/<th>Aksi<\/th>/g, '');
-            cleanContent = cleanContent.replace(/<td><button class="btn-remove"[\s\S]*?<\/td>/g, '');
-            cleanContent = cleanContent.replace(/<button class="btn btn-show-list"[\s\S]*?<\/button>/g, '');
-
-
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = cleanContent;
-
-            const classSelect = tempDiv.querySelector('#group-class');
-            const guruInput = tempDiv.querySelector('#guru-pendamping');
-            const formGroupIdentitas = classSelect ? classSelect.closest('.form-group-inline') : null;
-            
-            if (formGroupIdentitas) {
-                const classValue = classSelect.options[classSelect.selectedIndex].text || '____________________';
-                const guruValue = guruInput.value.trim() || '____________________';
-
-                const displayHtml = `
-                    <p style="font-weight: bold; margin-bottom: 10px; font-size: 11pt;">
-                        Kelas: ${classValue} | Guru Pendamping: ${guruValue}
-                    </p>
-                `;
-                
-                const tempP = document.createElement('div');
-                tempP.innerHTML = displayHtml;
-                formGroupIdentitas.parentNode.replaceChild(tempP.firstChild, formGroupIdentitas);
+            if (event.target == scheduleModal) {
+                scheduleModal.style.display = "none";
             }
-            
-            tempDiv.querySelectorAll('input, textarea').forEach(el => {
-                const value = el.value.trim() || '____________________';
-                const p = document.createElement('p');
-                p.textContent = value;
-                p.style.margin = '0';
-                p.style.fontWeight = 'normal';
-                
-                if (el.closest('#tabel-biaya')) {
-                    if (el.tagName !== 'INPUT' || !el.closest('td').classList.contains('summary-total')) {
-                        el.parentNode.replaceChild(p, el);
-                    }
-                } else {
-                    el.parentNode.replaceChild(p, el);
-                }
-            });
-            
-            let finalContent = tempDiv.innerHTML;
-
-            const htmlHeader = `
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 2cm; }
-                        h1, h2, h3 { color: #556B2F; border-bottom: 2px solid #8FBC8F; padding-bottom: 5px; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10pt; }
-                        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; vertical-align: top; }
-                        th { background-color: #DDA0DD; color: white; }
-                        .summary-row td { background-color: #F0E68C; font-weight: bold; }
-                        .keuntungan-row td { background-color: #8FBC8F; font-weight: bold; }
-                    </style>
-                </head>
-                <body>
-                    ${finalContent}
-                </body>
-                </html>
-            `;
-
-            const filename = 'LKPD_Budidaya_Tebu_Kelompok.doc';
-            const blob = new Blob(['\ufeff', htmlHeader], {
-                type: 'application/msword'
-            });
-
-            const url = URL.createObjectURL(blob);
-            const downloadLink = document.createElement("a");
-            document.body.appendChild(downloadLink);
-            downloadLink.href = url;
-            downloadLink.download = filename;
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-            URL.revokeObjectURL(url);
-            
-            alert('File LKPD berhasil diunduh sebagai Word (.doc)!');
         }
-        
     </script>
 </body>
 </html>
